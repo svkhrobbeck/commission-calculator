@@ -2,12 +2,35 @@ import { useMemo, useState } from "react";
 import { Calculator, ArrowDownToLine, ArrowUpFromLine, Percent } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Mode = "inside" | "ontop" | "rate";
+
+type CurrencyCode = "UZS" | "USD" | "RUB" | "EUR";
+
+const CURRENCIES: Record<CurrencyCode, { symbol: string; name: string }> = {
+  UZS: { symbol: "so'm", name: "So'm" },
+  USD: { symbol: "$", name: "Dollar" },
+  RUB: { symbol: "₽", name: "Rubl" },
+  EUR: { symbol: "€", name: "Yevro" },
+};
 
 type Result = {
   total: number;
@@ -25,9 +48,10 @@ const RATE_FORMATTER = new Intl.NumberFormat("uz-UZ", {
   maximumFractionDigits: 4,
 });
 
-function formatSum(value: number) {
+function formatSum(value: number, currency: CurrencyCode = "UZS") {
   if (!Number.isFinite(value)) return "—";
-  return SUM_FORMATTER.format(Math.round(value * 100) / 100);
+  const formatted = SUM_FORMATTER.format(Math.round(value * 100) / 100);
+  return `${formatted} ${CURRENCIES[currency].symbol}`;
 }
 
 function formatRate(value: number) {
@@ -51,8 +75,14 @@ function parseInputNumber(value: string): number {
   return parseFloat(value.replace(/\s/g, ""));
 }
 
-function calculate(mode: Mode, a: number, b: number): Result | null {
+function calculate(
+  mode: Mode,
+  a: number,
+  b: number,
+  currency: CurrencyCode,
+): Result | null {
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  const f = (v: number) => formatSum(v, currency);
 
   if (mode === "inside") {
     if (a <= 0 || b < 0) return null;
@@ -63,7 +93,7 @@ function calculate(mode: Mode, a: number, b: number): Result | null {
       commission,
       net,
       rate: b,
-      formula: `Sof = ${formatSum(a)} / (1 + ${b} / 100);  Komissiya = ${formatSum(a)} − sof`,
+      formula: `Sof = ${f(a)} / (1 + ${b} / 100);  Komissiya = ${f(a)} − sof`,
     };
   }
 
@@ -76,12 +106,12 @@ function calculate(mode: Mode, a: number, b: number): Result | null {
       commission,
       net: a,
       rate: b,
-      formula: `Umumiy summa = ${formatSum(a)} + (${formatSum(a)} × ${b} / 100)`,
+      formula: `Umumiy summa = ${f(a)} + (${f(a)} × ${b} / 100)`,
     };
   }
 
   // rate: a = to'lanayotgan summa (jami), b = komissiya summasi
-  // sof = a − b, foiz = komissiya / sof × 100
+  // foiz = komissiya / jami × 100
   if (a <= 0 || b < 0 || b >= a) return null;
   const net = a - b;
   const rate = (b / a) * 100;
@@ -90,7 +120,7 @@ function calculate(mode: Mode, a: number, b: number): Result | null {
     commission: b,
     net,
     rate,
-    formula: `Sof = ${formatSum(a)} − ${formatSum(b)};  Foiz = (${formatSum(b)} / ${formatSum(a)}) × 100`,
+    formula: `Sof = ${f(a)} − ${f(b)};  Foiz = (${f(b)} / ${f(a)}) × 100`,
   };
 }
 
@@ -143,14 +173,23 @@ const FIELD_LABELS: Record<
   },
 };
 
-function CalculatorForm({ mode }: { mode: Mode }) {
+function CalculatorForm({
+  mode,
+  currency,
+}: {
+  mode: Mode;
+  currency: CurrencyCode;
+}) {
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
 
   const firstNum = parseInputNumber(first);
   const secondNum = parseInputNumber(second);
 
-  const result = useMemo(() => calculate(mode, firstNum, secondNum), [mode, firstNum, secondNum]);
+  const result = useMemo(
+    () => calculate(mode, firstNum, secondNum, currency),
+    [mode, firstNum, secondNum, currency],
+  );
 
   const reset = () => {
     setFirst("");
@@ -200,21 +239,33 @@ function CalculatorForm({ mode }: { mode: Mode }) {
             <div>
               <ResultRow
                 label="Yuboriladigan umumiy summa"
-                value={formatSum(result.total)}
+                value={formatSum(result.total, currency)}
                 emphasis
               />
-              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
-              <ResultRow label="Yakuniy tushadigan summa" value={formatSum(result.net)} />
+              <ResultRow
+                label="Komissiya summasi"
+                value={formatSum(result.commission, currency)}
+              />
+              <ResultRow
+                label="Yakuniy tushadigan summa"
+                value={formatSum(result.net, currency)}
+              />
             </div>
           )}
 
           {mode === "ontop" && (
             <div>
-              <ResultRow label="Asosiy summa" value={formatSum(result.net)} />
-              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
+              <ResultRow
+                label="Asosiy summa"
+                value={formatSum(result.net, currency)}
+              />
+              <ResultRow
+                label="Komissiya summasi"
+                value={formatSum(result.commission, currency)}
+              />
               <ResultRow
                 label="Umumiy to'lanadigan summa"
-                value={formatSum(result.total)}
+                value={formatSum(result.total, currency)}
                 emphasis
               />
             </div>
@@ -222,9 +273,19 @@ function CalculatorForm({ mode }: { mode: Mode }) {
 
           {mode === "rate" && (
             <div>
-              <ResultRow label="Komissiya foizi" value={`${formatRate(result.rate)} %`} emphasis />
-              <ResultRow label="To'lanayotgan summa" value={formatSum(result.total)} />
-              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
+              <ResultRow
+                label="Komissiya foizi"
+                value={`${formatRate(result.rate)} %`}
+                emphasis
+              />
+              <ResultRow
+                label="To'lanayotgan summa"
+                value={formatSum(result.total, currency)}
+              />
+              <ResultRow
+                label="Komissiya summasi"
+                value={formatSum(result.commission, currency)}
+              />
             </div>
           )}
         </div>
@@ -238,6 +299,8 @@ function CalculatorForm({ mode }: { mode: Mode }) {
 }
 
 function App() {
+  const [currency, setCurrency] = useState<CurrencyCode>("UZS");
+
   return (
     <div className="min-h-svh bg-background px-3 py-6 text-foreground sm:px-4 sm:py-10">
       <div className="mx-auto flex w-full max-w-xl flex-col gap-4 sm:gap-6">
@@ -259,6 +322,26 @@ function App() {
           <CardHeader>
             <CardTitle>Hisoblash</CardTitle>
             <CardDescription>Hisoblash turini tanlang va ma'lumotlarni kiriting.</CardDescription>
+            <CardAction>
+              <Select
+                value={currency}
+                onValueChange={(v) => setCurrency(v as CurrencyCode)}
+              >
+                <SelectTrigger className="w-28" aria-label="Valyuta">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+                    <SelectItem key={code} value={code}>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {code}
+                      </span>
+                      <span>{CURRENCIES[code].name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="inside">
@@ -296,13 +379,13 @@ function App() {
               </TabsList>
 
               <TabsContent value="inside" className="mt-4">
-                <CalculatorForm mode="inside" />
+                <CalculatorForm mode="inside" currency={currency} />
               </TabsContent>
               <TabsContent value="ontop" className="mt-4">
-                <CalculatorForm mode="ontop" />
+                <CalculatorForm mode="ontop" currency={currency} />
               </TabsContent>
               <TabsContent value="rate" className="mt-4">
-                <CalculatorForm mode="rate" />
+                <CalculatorForm mode="rate" currency={currency} />
               </TabsContent>
             </Tabs>
           </CardContent>
