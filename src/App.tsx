@@ -225,7 +225,6 @@ function CalculatorForm({ mode }: { mode: Mode }) {
               <ResultRow label="Komissiya foizi" value={`${formatRate(result.rate)} %`} emphasis />
               <ResultRow label="To'lanayotgan summa" value={formatSum(result.total)} />
               <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
-              <ResultRow label="Sof tushadigan summa" value={formatSum(result.net)} />
             </div>
           )}
         </div>
