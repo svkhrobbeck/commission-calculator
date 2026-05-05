@@ -1,19 +1,8 @@
 import { useMemo, useState } from "react";
-import {
-  Calculator,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  Percent,
-} from "lucide-react";
+import { Calculator, ArrowDownToLine, ArrowUpFromLine, Percent } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -95,13 +84,13 @@ function calculate(mode: Mode, a: number, b: number): Result | null {
   // sof = a − b, foiz = komissiya / sof × 100
   if (a <= 0 || b < 0 || b >= a) return null;
   const net = a - b;
-  const rate = (b / net) * 100;
+  const rate = (b / a) * 100;
   return {
     total: a,
     commission: b,
     net,
     rate,
-    formula: `Sof = ${formatSum(a)} − ${formatSum(b)};  Foiz = (${formatSum(b)} / ${formatSum(net)}) × 100`,
+    formula: `Sof = ${formatSum(a)} − ${formatSum(b)};  Foiz = (${formatSum(b)} / ${formatSum(a)}) × 100`,
   };
 }
 
@@ -161,10 +150,7 @@ function CalculatorForm({ mode }: { mode: Mode }) {
   const firstNum = parseInputNumber(first);
   const secondNum = parseInputNumber(second);
 
-  const result = useMemo(
-    () => calculate(mode, firstNum, secondNum),
-    [mode, firstNum, secondNum],
-  );
+  const result = useMemo(() => calculate(mode, firstNum, secondNum), [mode, firstNum, secondNum]);
 
   const reset = () => {
     setFirst("");
@@ -182,7 +168,7 @@ function CalculatorForm({ mode }: { mode: Mode }) {
           inputMode="decimal"
           placeholder={labels.firstHint}
           value={first}
-          onChange={(e) => setFirst(formatNumberInput(e.target.value))}
+          onChange={e => setFirst(formatNumberInput(e.target.value))}
         />
       </div>
 
@@ -193,17 +179,12 @@ function CalculatorForm({ mode }: { mode: Mode }) {
           inputMode="decimal"
           placeholder={labels.secondHint}
           value={second}
-          onChange={(e) => setSecond(formatNumberInput(e.target.value))}
+          onChange={e => setSecond(formatNumberInput(e.target.value))}
         />
       </div>
 
       <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={reset}
-          disabled={!first && !second}
-        >
+        <Button type="button" variant="outline" onClick={reset} disabled={!first && !second}>
           Tozalash
         </Button>
       </div>
@@ -222,24 +203,15 @@ function CalculatorForm({ mode }: { mode: Mode }) {
                 value={formatSum(result.total)}
                 emphasis
               />
-              <ResultRow
-                label="Komissiya summasi"
-                value={formatSum(result.commission)}
-              />
-              <ResultRow
-                label="Yakuniy tushadigan summa"
-                value={formatSum(result.net)}
-              />
+              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
+              <ResultRow label="Yakuniy tushadigan summa" value={formatSum(result.net)} />
             </div>
           )}
 
           {mode === "ontop" && (
             <div>
               <ResultRow label="Asosiy summa" value={formatSum(result.net)} />
-              <ResultRow
-                label="Komissiya summasi"
-                value={formatSum(result.commission)}
-              />
+              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
               <ResultRow
                 label="Umumiy to'lanadigan summa"
                 value={formatSum(result.total)}
@@ -250,23 +222,10 @@ function CalculatorForm({ mode }: { mode: Mode }) {
 
           {mode === "rate" && (
             <div>
-              <ResultRow
-                label="Komissiya foizi"
-                value={`${formatRate(result.rate)} %`}
-                emphasis
-              />
-              <ResultRow
-                label="To'lanayotgan summa"
-                value={formatSum(result.total)}
-              />
-              <ResultRow
-                label="Komissiya summasi"
-                value={formatSum(result.commission)}
-              />
-              <ResultRow
-                label="Sof tushadigan summa"
-                value={formatSum(result.net)}
-              />
+              <ResultRow label="Komissiya foizi" value={`${formatRate(result.rate)} %`} emphasis />
+              <ResultRow label="To'lanayotgan summa" value={formatSum(result.total)} />
+              <ResultRow label="Komissiya summasi" value={formatSum(result.commission)} />
+              <ResultRow label="Sof tushadigan summa" value={formatSum(result.net)} />
             </div>
           )}
         </div>
@@ -292,18 +251,15 @@ function App() {
             Komissiyani aniq hisoblang
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            Pul o'tkazma va to'lovlar uchun komissiyani uch xil usulda
-            hisoblang: komissiya summa ichida, ustidan qo'shilganda yoki
-            komissiya foizini topish.
+            Pul o'tkazma va to'lovlar uchun komissiyani uch xil usulda hisoblang: komissiya summa
+            ichida, ustidan qo'shilganda yoki komissiya foizini topish.
           </p>
         </header>
 
         <Card>
           <CardHeader>
             <CardTitle>Hisoblash</CardTitle>
-            <CardDescription>
-              Hisoblash turini tanlang va ma'lumotlarni kiriting.
-            </CardDescription>
+            <CardDescription>Hisoblash turini tanlang va ma'lumotlarni kiriting.</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="inside">
