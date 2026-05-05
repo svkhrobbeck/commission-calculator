@@ -46,6 +46,22 @@ function formatRate(value: number) {
   return RATE_FORMATTER.format(Math.round(value * 10000) / 10000);
 }
 
+function formatNumberInput(raw: string): string {
+  let v = raw.replace(/,/g, ".");
+  v = v.replace(/[^\d.]/g, "");
+  const firstDot = v.indexOf(".");
+  if (firstDot !== -1) {
+    v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, "");
+  }
+  const [intPart = "", decPart] = v.split(".");
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return decPart !== undefined ? `${formattedInt}.${decPart}` : formattedInt;
+}
+
+function parseInputNumber(value: string): number {
+  return parseFloat(value.replace(/\s/g, ""));
+}
+
 function calculate(mode: Mode, a: number, b: number): Result | null {
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
 
@@ -142,8 +158,8 @@ function CalculatorForm({ mode }: { mode: Mode }) {
   const [first, setFirst] = useState("");
   const [second, setSecond] = useState("");
 
-  const firstNum = parseFloat(first.replace(/\s/g, "").replace(",", "."));
-  const secondNum = parseFloat(second.replace(/\s/g, "").replace(",", "."));
+  const firstNum = parseInputNumber(first);
+  const secondNum = parseInputNumber(second);
 
   const result = useMemo(
     () => calculate(mode, firstNum, secondNum),
@@ -166,7 +182,7 @@ function CalculatorForm({ mode }: { mode: Mode }) {
           inputMode="decimal"
           placeholder={labels.firstHint}
           value={first}
-          onChange={(e) => setFirst(e.target.value)}
+          onChange={(e) => setFirst(formatNumberInput(e.target.value))}
         />
       </div>
 
@@ -177,7 +193,7 @@ function CalculatorForm({ mode }: { mode: Mode }) {
           inputMode="decimal"
           placeholder={labels.secondHint}
           value={second}
-          onChange={(e) => setSecond(e.target.value)}
+          onChange={(e) => setSecond(formatNumberInput(e.target.value))}
         />
       </div>
 
