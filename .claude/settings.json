@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun --version)",
+      "Bash(bun create *)",
+      "Bash(cd \"b:/work/myworks\" && bun create vite commission-calculator-tmp --template react-ts -y 2>&1 | head -50)",
+      "Read(//b/work/myworks/**)",
+      "Bash(bunx --bun shadcn@latest init --base-color neutral --yes)",
+      "Bash(bunx --bun shadcn@latest init --help)",
+      "Bash(bunx --bun shadcn@latest init -t vite -b radix --yes)",
+      "Bash(bunx --bun shadcn@latest add input label card select tabs --yes)",
+      "Bash(grep -q \"ready in\\\\|Local:\" \"C:\\\\\\\\Users\\\\\\\\zutsiy\\\\\\\\AppData\\\\\\\\Local\\\\\\\\Temp\\\\\\\\claude\\\\\\\\b--work-myworks-commission-calculator\\\\\\\\b5acacd9-7dc4-4a06-b5d1-4305834e9d9f\\\\\\\\tasks\\\\\\\\bjbv05prp.output\")"
+    ]
+  }
+}
